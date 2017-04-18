@@ -21,9 +21,15 @@
     <ClCompile Include="..\..\..\..\Andrew%27s_Docs\Ecocar\EcoCAR_Y3\PSUAVT_ADAS_2017\ImageCapture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\Andrew%27s_Docs\Ecocar\EcoCAR_Y3\PSUAVT_ADAS_2017\StereoCalculation.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\Andrew%27s_Docs\Ecocar\EcoCAR_Y3\PSUAVT_ADAS_2017\ImageCapture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Andrew%27s_Docs\Ecocar\EcoCAR_Y3\PSUAVT_ADAS_2017\StereoCalculation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

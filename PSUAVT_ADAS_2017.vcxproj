@@ -156,9 +156,11 @@
   <ItemGroup>
     <ClCompile Include="..\..\..\..\Andrew%27s_Docs\Ecocar\EcoCAR_Y3\PSUAVT_ADAS_2017\ImageCapture.cpp" />
     <ClCompile Include="..\..\..\..\Andrew%27s_Docs\Ecocar\EcoCAR_Y3\PSUAVT_ADAS_2017\main.cpp" />
+    <ClCompile Include="..\..\..\..\Andrew%27s_Docs\Ecocar\EcoCAR_Y3\PSUAVT_ADAS_2017\StereoCalculation.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\Andrew%27s_Docs\Ecocar\EcoCAR_Y3\PSUAVT_ADAS_2017\ImageCapture.h" />
+    <ClInclude Include="..\..\..\..\Andrew%27s_Docs\Ecocar\EcoCAR_Y3\PSUAVT_ADAS_2017\StereoCalculation.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
