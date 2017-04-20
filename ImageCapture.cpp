@@ -13,8 +13,7 @@ std::thread cameraCaptureThread;
 bool stopHere = false;
 
 /**
-Initializes cameras and begins camera capture threads. Sets focus and zoom using
-DirectShow interface.
+Initializes cameras and begins camera capture threads. Uses DirectShow to find the cameras
 */
 StereoCamera::StereoCamera()
 {
@@ -38,6 +37,8 @@ StereoCamera::StereoCamera()
 		printf("Right Camera Index : %d\n", right);
 		printf("Make sure both cameras are plugged in. Plug Left Camera in before Right Camera as well.\n");
 		this->~StereoCamera();
+		system("pause");
+		exit(1);
 	}
 	else
 		StereoCamera(left, right);
@@ -47,8 +48,7 @@ StereoCamera::StereoCamera()
 leftCamera - Left camera device number (As user must know what value this is)
 rightCamera - Right camera device number
 
-Opens Cameras using OpenCV interface. Does not set focus and zoom. Begns
-image capture thread.
+Opens Cameras using OpenCV interface.
 */
 StereoCamera::StereoCamera(int leftCamera, int rightCamera){
 	leftCam = cv::VideoCapture(leftCamera);

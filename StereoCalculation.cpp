@@ -79,10 +79,12 @@ void calculateDisparity(cv::Mat leftRectified, cv::Mat rightRectified, cv::Mat* 
 }
 
 void calculateDisparity(cv::Mat leftRectified, cv::Mat rightRectified, cv::Mat* disp,cv::Mat* p3d,cv::Mat * dispColorMap){
+	cv::Mat copyLeft = leftRectified.clone();
+	cv::Mat copyRight = rightRectified.clone();
 	cv::Mat leftRectGray, rightRectGray;
 
-	cv::cvtColor(leftRectified, leftRectGray, CV_BGR2GRAY);
-	cv::cvtColor(rightRectified, rightRectGray, CV_BGR2GRAY);
+	cv::cvtColor(copyLeft, leftRectGray, CV_BGR2GRAY);
+	cv::cvtColor(copyRight, rightRectGray, CV_BGR2GRAY);
 	cv::Mat disparity, points3D, disparityColorMap;
 	disparityCalculator(leftRectGray, rightRectGray, disparity);
 	cv::reprojectImageTo3D(disparity, points3D, Q, true);  // handles missing values

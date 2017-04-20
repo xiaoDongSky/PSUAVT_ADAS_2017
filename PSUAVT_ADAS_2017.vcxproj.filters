@@ -5,32 +5,61 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
-    </Filter>
     <Filter Include="Resource Files">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Objects">
+      <UniqueIdentifier>{c7f0f4bd-d253-4280-be93-9bbc3bf1af26}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Stereo Camera">
+      <UniqueIdentifier>{0381a78e-b56e-4d1b-a34e-119f34bfb87c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Detection">
+      <UniqueIdentifier>{70d64eb1-70d3-4bfa-b829-4029ff9e1d2c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\Andrew%27s_Docs\Ecocar\EcoCAR_Y3\PSUAVT_ADAS_2017\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\Andrew%27s_Docs\Ecocar\EcoCAR_Y3\PSUAVT_ADAS_2017\ImageCapture.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="..\..\..\..\Andrew%27s_Docs\Ecocar\EcoCAR_Y3\PSUAVT_ADAS_2017\VehicleDetectionTracking\frameAnnotator.cpp">
+      <Filter>Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Andrew%27s_Docs\Ecocar\EcoCAR_Y3\PSUAVT_ADAS_2017\VehicleDetectionTracking\object.cpp">
+      <Filter>Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Andrew%27s_Docs\Ecocar\EcoCAR_Y3\PSUAVT_ADAS_2017\VehicleDetectionTracking\objectTracker.cpp">
+      <Filter>Objects</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Andrew%27s_Docs\Ecocar\EcoCAR_Y3\PSUAVT_ADAS_2017\StereoCalculation.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Stereo Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Andrew%27s_Docs\Ecocar\EcoCAR_Y3\PSUAVT_ADAS_2017\ImageCapture.cpp">
+      <Filter>Stereo Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Andrew%27s_Docs\Ecocar\EcoCAR_Y3\PSUAVT_ADAS_2017\Detectors\CPUDetector.cpp">
+      <Filter>Detection</Filter>
+    </ClCompile>
+    <ClCompile Include="Detectors\GPUDetector.cpp">
+      <Filter>Detection</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\Andrew%27s_Docs\Ecocar\EcoCAR_Y3\PSUAVT_ADAS_2017\ImageCapture.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="VehicleDetectionTracking\objects.h">
+      <Filter>Objects</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Andrew%27s_Docs\Ecocar\EcoCAR_Y3\PSUAVT_ADAS_2017\StereoCalculation.h">
-      <Filter>Header Files</Filter>
+      <Filter>Stereo Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Andrew%27s_Docs\Ecocar\EcoCAR_Y3\PSUAVT_ADAS_2017\ImageCapture.h">
+      <Filter>Stereo Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Andrew%27s_Docs\Ecocar\EcoCAR_Y3\PSUAVT_ADAS_2017\Detectors\CPUDetector.h">
+      <Filter>Detection</Filter>
+    </ClInclude>
+    <ClInclude Include="Detectors\GPUDetector.h">
+      <Filter>Detection</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
