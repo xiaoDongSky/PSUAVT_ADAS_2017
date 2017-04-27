@@ -1,5 +1,7 @@
 #pragma once
 #include <opencv2\opencv.hpp>
+#include "../VehicleDetectionTracking/objects.h"
+
 class CPUDetector
 {
 public:
@@ -13,6 +15,7 @@ public:
 	void loadFile(char * fileName);
 
 	int multiScaleDetection(cv::Mat image, std::vector<cv::Rect>* objects);
+	void multiScaleDetection(cv::Mat image, std::vector<object> &objects);
 
 private:
 	double scaleFactor1;

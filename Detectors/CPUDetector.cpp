@@ -65,3 +65,18 @@ int CPUDetector::multiScaleDetection(cv::Mat image, std::vector<cv::Rect>* objec
 		return -1;
 	}
 }
+
+void multiScaleDetection(cv::Mat image, std::vector<object> &objects){
+	std::vector<cv::Rect> detectedBoundingBoxes;
+
+	detector.detectMultiScale(image, detectedBoundingBoxes, scaleFactor1, minNeighbors1);
+
+	for (size_t i = 0; i < detectedBoundingBoxes.size(); ++i)
+	{
+		cv::Mat mask(image.size(), CV_8UC1, cv::Scalar::all(0));
+		mask(detectedBoundingBoxes[i]).setTo(cv::Scalar::all(255));
+		std::vector<cv::Point2f> detectedCorners;
+		cv::goodFeaturesToTrack(image, detectedCorners, 100, 0.001, 0, mask);
+		objects.push_back(object(detectedBoundingBoxes[i], detectedCorners, 0));
+	}
+}
