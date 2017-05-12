@@ -18,6 +18,9 @@
     <Filter Include="Detection">
       <UniqueIdentifier>{70d64eb1-70d3-4bfa-b829-4029ff9e1d2c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="CSV">
+      <UniqueIdentifier>{180fda10-ef50-405c-b95b-3e4d6b87f6f3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\Andrew%27s_Docs\Ecocar\EcoCAR_Y3\PSUAVT_ADAS_2017\main.cpp">
@@ -44,6 +47,15 @@
     <ClCompile Include="Detectors\GPUDetector.cpp">
       <Filter>Detection</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\Andrew%27s_Docs\Ecocar\EcoCAR_Y3\PSUAVT_ADAS_2017\CSV\csvwriter.cpp">
+      <Filter>CSV</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Andrew%27s_Docs\Ecocar\EcoCAR_Y3\PSUAVT_ADAS_2017\Detectors\PeopleDetector.cpp">
+      <Filter>Detection</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Andrew%27s_Docs\Ecocar\EcoCAR_Y3\PSUAVT_ADAS_2017\Detectors\laneDetection.cpp">
+      <Filter>Detection</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="VehicleDetectionTracking\objects.h">
@@ -59,6 +71,15 @@
       <Filter>Detection</Filter>
     </ClInclude>
     <ClInclude Include="Detectors\GPUDetector.h">
+      <Filter>Detection</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Andrew%27s_Docs\Ecocar\EcoCAR_Y3\PSUAVT_ADAS_2017\CSV\csvwriter.h">
+      <Filter>CSV</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Andrew%27s_Docs\Ecocar\EcoCAR_Y3\PSUAVT_ADAS_2017\Detectors\globals.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Andrew%27s_Docs\Ecocar\EcoCAR_Y3\PSUAVT_ADAS_2017\Detectors\lane.h">
       <Filter>Detection</Filter>
     </ClInclude>
   </ItemGroup>

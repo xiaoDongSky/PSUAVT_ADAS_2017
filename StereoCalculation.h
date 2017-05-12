@@ -1,4 +1,7 @@
 #include <opencv2\opencv.hpp>
+#include <opencv2\gpu\gpu.hpp>
+#include "VehicleDetectionTracking\objects.h"
+#include "Detectors\lane.h"
 
 cv::Mat createCameraMatrix(double f_x, double c_x, double f_y, double c_y);
 
@@ -15,3 +18,9 @@ void rectifyImages(cv::Mat leftFrame, cv::Mat rightFrame, cv::Mat* leftRectified
 void calculateDisparity(cv::Mat leftRectified, cv::Mat rightRectified, cv::Mat* disp, cv::Mat* p3d);
 
 void calculateDisparity(cv::Mat leftRectified, cv::Mat rightRectified, cv::Mat* disp, cv::Mat* p3d, cv::Mat *dispColorMap);
+
+void gpuCalculateDisparity(cv::Mat leftRectified, cv::Mat rightRectified, cv::Mat* p3d);
+
+double GetMedian(double daArray[], int iSize);
+
+void calculateDistances(cv::Mat points3d, objectTracker& tracker, lane lane);

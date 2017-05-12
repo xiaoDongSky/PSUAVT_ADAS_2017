@@ -67,6 +67,7 @@ int CPUDetector::multiScaleDetection(cv::Mat image, std::vector<cv::Rect>* objec
 }
 
 void multiScaleDetection(cv::Mat image, std::vector<object> &objects){
+	objects.clear();
 	std::vector<cv::Rect> detectedBoundingBoxes;
 
 	detector.detectMultiScale(image, detectedBoundingBoxes, scaleFactor1, minNeighbors1);
@@ -79,4 +80,27 @@ void multiScaleDetection(cv::Mat image, std::vector<object> &objects){
 		cv::goodFeaturesToTrack(image, detectedCorners, 100, 0.001, 0, mask);
 		objects.push_back(object(detectedBoundingBoxes[i], detectedCorners, 0));
 	}
+}
+
+void CPUDetector::multiScaleDetection(cv::Mat image, objectTracker* tracker){
+
+	printf("Tracker Mem = %x\n", tracker);
+	std::vector<object> objects;
+	cv::Mat gray;
+	cv::cvtColor(image, gray, CV_BGR2GRAY);
+	
+	std::vector<cv::Rect> detectedBoundingBoxes;
+
+	detector.detectMultiScale(gray, detectedBoundingBoxes, scaleFactor1, minNeighbors1);
+
+	for (size_t i = 0; i < detectedBoundingBoxes.size(); ++i)
+	{
+		cv::Mat mask(gray.size(), CV_8UC1, cv::Scalar::all(0));
+		mask(detectedBoundingBoxes[i]).setTo(cv::Scalar::all(255));
+		std::vector<cv::Point2f> detectedCorners;
+		cv::goodFeaturesToTrack(gray, detectedCorners, 100, 0.001, 0, mask);
+		objects.push_back(object(detectedBoundingBoxes[i], detectedCorners, 0));
+	}
+	if (objects.size()> 0)
+		tracker->track(objects,image);
 }

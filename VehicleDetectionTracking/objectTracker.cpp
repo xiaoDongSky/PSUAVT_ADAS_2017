@@ -2,8 +2,9 @@
 #include "objects.h"
 #include "stdio.h"
 
-objectTracker::objectTracker()
+objectTracker::objectTracker(ObjectType o)
 {
+	obj = o;
     framesInMemory = 10;
     maxTrackedObjects = 10;
     minTrackingPercentage = 20.0;
@@ -85,8 +86,9 @@ void objectTracker::track(const std::vector<object> &detectedObjects, const cv::
 
             if (correspondingDetectedObjectIdx >= 0)
             {
-                trackedObjects[trackedObject] = detectedObjects[correspondingDetectedObjectIdx]; 
+                trackedObjects[trackedObject] = detectedObjects[correspondingDetectedObjectIdx];
                 detectedObjectsThatWereTracked[correspondingDetectedObjectIdx] = true;   
+				trackedObjects[trackedObject].lastSeenIndex = 0;
             }
         }
 
@@ -97,7 +99,10 @@ void objectTracker::track(const std::vector<object> &detectedObjects, const cv::
                 if(!detectedObjectsThatWereTracked[detectedObject])
                 {
                     trackedObjects.push_back(detectedObjects[detectedObject]);
-                }
+					trackedObjects[trackedObjects.size() - 1].lastSeenIndex = 0;
+					trackedObjects[trackedObjects.size() - 1].objectID = numObjects;
+					numObjects++;
+                 }
             }
         }
 
@@ -105,5 +110,10 @@ void objectTracker::track(const std::vector<object> &detectedObjects, const cv::
     else
     {
         trackedObjects = detectedObjects;
+		for (int i = 0; i < trackedObjects.size(); i++){
+			trackedObjects[i].lastSeenIndex = 0;
+			trackedObjects[i].objectID = numObjects;
+			numObjects++;
+		}
     }
 }

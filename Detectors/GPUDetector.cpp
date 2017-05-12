@@ -62,7 +62,7 @@ void GPUDetector::multiScaleDetection(cv::Mat image, cv::Rect* objects, int *obj
 
 		imageGPU.upload(image);
 		*objNum = detector.detectMultiScale(imageGPU, detectedObjs,scaleFactor,minNeighbors);
-		
+		imageGPU.release();
 		detectedObjs.colRange(0, *objNum).download(obj_host);
 		objects = obj_host.ptr<cv::Rect>();
 	}

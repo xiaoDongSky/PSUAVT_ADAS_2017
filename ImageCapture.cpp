@@ -59,9 +59,14 @@ StereoCamera::StereoCamera(int leftCamera, int rightCamera){
 	leftCam.set(CV_CAP_PROP_ZOOM, 100);
 	leftCam.set(CV_CAP_PROP_FRAME_WIDTH, 864);
 	leftCam.set(CV_CAP_PROP_FRAME_HEIGHT, 480);
+	leftCam.set(CV_CAP_PROP_CONTRAST, 150);
+	leftCam.set(CV_CAP_PROP_BRIGHTNESS, 150);
 	rightCam.set(CV_CAP_PROP_FOCUS, 0);
+	rightCam.set(CV_CAP_PROP_ZOOM, 100);
 	rightCam.set(CV_CAP_PROP_FRAME_WIDTH, 864);
 	rightCam.set(CV_CAP_PROP_FRAME_HEIGHT, 480);
+	leftCam.set(CV_CAP_PROP_CONTRAST, 150);
+	leftCam.set(CV_CAP_PROP_BRIGHTNESS, 150);
 	cameraCaptureThread = std::thread(&StereoCamera::updateFrames,this);
 	cameraCaptureThread.detach();
 }

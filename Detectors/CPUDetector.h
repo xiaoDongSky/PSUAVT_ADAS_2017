@@ -15,8 +15,8 @@ public:
 	void loadFile(char * fileName);
 
 	int multiScaleDetection(cv::Mat image, std::vector<cv::Rect>* objects);
-	void multiScaleDetection(cv::Mat image, std::vector<object> &objects);
-
+	void multiScaleDetection(cv::Mat image, objectTracker* tracker);
+	void multiScaleDetection(cv::Mat image, std::vector<object> objects);
 private:
 	double scaleFactor1;
 	int minNeighbors1;
