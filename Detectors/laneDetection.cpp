@@ -133,13 +133,15 @@ bool lane::validLaneInMemory()
 	}
 }
 
-void hostLaneDetector(const cv::Mat &inputFrame, cv::Mat &annotatedFrame, lane &hostLane, const double horizonPercentage = 0.3)
+void hostLaneDetector(const cv::Mat &inputFrame, cv::Mat *annotatedFrame, lane *hostLane, const double horizonPercentage = 0.3)
 {
 	cv::Mat hsvMask, edgeFrame, hsvAndEdgeMask;
 	static int yHorizon = inputFrame.size().height * horizonPercentage;
-	//std::vector<cv::Vec2f> lines;
-	std::vector<cv::Vec4i> lines;
+	std::vector<cv::Vec2f> lines;
+	//std::vector<cv::Vec4i> lines;
 	float percentXFromCenterOneWay = .25;
+	float nearPointDistanceForNewLine = .05;
+
 	int xShift = (inputFrame.size().width / 2) - 1 - percentXFromCenterOneWay*inputFrame.size().width;
 	cv::Rect rectROI = cv::Rect(xShift, yHorizon,inputFrame.size().width * 2 * percentXFromCenterOneWay, inputFrame.size().height - 1 - yHorizon);
 
@@ -149,13 +151,13 @@ void hostLaneDetector(const cv::Mat &inputFrame, cv::Mat &annotatedFrame, lane &
 	edgeImageCreator(yellowWhiteColor, edgeFrame);
 	//lineFinder(edgeFrame, lines, rectROI);
 	gpulineFinder(edgeFrame, lines, rectROI);
-	annotatedFrame = inputFrame;
+	inputFrame.copyTo(*annotatedFrame);
 
 	double leftLaneOffset = std::numeric_limits<int>::min();
 	double rightLaneOffset = std::numeric_limits<int>::max();
 
 	//For GPU Line Detection
-	for (size_t i = 0; i<lines.size(); ++i)
+	/*for (size_t i = 0; i<lines.size(); ++i)
 	{
 		cv::Vec4i l = lines[i];
 		cv::Point2i detectedNearPt, detectedFarPt;
@@ -165,72 +167,81 @@ void hostLaneDetector(const cv::Mat &inputFrame, cv::Mat &annotatedFrame, lane &
 		detectedFarPt.y = l[3];
 
 
-		cv::line(annotatedFrame, detectedNearPt, detectedNearPt, cv::Scalar(0, 0, 255), 1, 8);
+		cv::line(*annotatedFrame, detectedNearPt, detectedNearPt, cv::Scalar(0, 0, 255), 1, 8);
 		double offsetFrac = (detectedNearPt.x - centerX) / double(centerX);
 		if (fabs(offsetFrac) > 0.2)
 		{
 			if (offsetFrac > 0 && offsetFrac < rightLaneOffset)
 			{
 				rightLaneOffset = offsetFrac;
-				hostLane.setLanePts(detectedNearPt, detectedFarPt, true);
+				hostLane->setLanePts(detectedNearPt, detectedFarPt, true);
 
 			}
 			else if (offsetFrac < 0 && offsetFrac > leftLaneOffset)
 			{
 				leftLaneOffset = offsetFrac;
-				hostLane.setLanePts(detectedNearPt, detectedFarPt, false);
+				hostLane->setLanePts(detectedNearPt, detectedFarPt, false);
 			}
 		}
 		else
 		{
 			std::cout << "Changing Lanes!" << std::endl;
+		}*/
+
+
+	//}
+	std::vector<cv::Point2i> placedNearPoints;
+	for (std::size_t i = 0; i < lines.size(); ++i)
+	{
+		bool pointFound = false;
+		float rho = lines[i][0], theta = lines[i][1];
+		// Plot ONLY non-horizontal lines:
+		if ((theta < 3 * CV_PI / 8) || (theta > 7 * CV_PI / 8) ||
+			(theta > 5 * CV_PI / 8 && theta < 11 * CV_PI / 8))
+		{
+			cv::Point2i detectedNearPt, detectedFarPt;
+			detectedFarPt.y = cvRound(yHorizon);
+			detectedNearPt.y = cvRound(inputFrame.size().height - 1);
+			detectedFarPt.x = cvRound((rho - detectedFarPt.y*sin(theta)) / cos(theta));
+			detectedNearPt.x = cvRound((rho - detectedNearPt.y*sin(theta)) / cos(theta));
+			
+			if (placedNearPoints.size() > 0){
+				for (int point = 0; point < placedNearPoints.size(); point++){
+					if (abs(placedNearPoints[point].x - detectedNearPt.x) < inputFrame.size().width*nearPointDistanceForNewLine){
+						pointFound = true;
+					}
+				}
+			}
+			if (!pointFound){
+				cv::line(*annotatedFrame, detectedNearPt, detectedFarPt, cv::Scalar(0, 0, 255), 1);
+				placedNearPoints.push_back(detectedNearPt);
+
+				double offsetFrac = (detectedNearPt.x - centerX) / double(centerX);
+				if (fabs(offsetFrac) > 0.2)
+				{
+					if (offsetFrac > 0 && offsetFrac < rightLaneOffset)
+					{
+						rightLaneOffset = offsetFrac;
+						hostLane->setLanePts(detectedNearPt, detectedFarPt, true);
+
+					}
+					else if (offsetFrac < 0 && offsetFrac > leftLaneOffset)
+					{
+						leftLaneOffset = offsetFrac;
+						hostLane->setLanePts(detectedNearPt, detectedFarPt, false);
+					}
+				}
+				else
+				{
+					std::cout << "Changing Lanes!" << std::endl;
+				}
+			}
 		}
-
-
 	}
 
-	//for (std::size_t i = 0; i < lines.size(); ++i)
-	//{
-	//	float rho = lines[i][0], theta = lines[i][1];
-	//	// Plot ONLY non-horizontal lines:
-	//	if ((theta < 3 * CV_PI / 8) || (theta > 7 * CV_PI / 8) ||
-	//		(theta > 5 * CV_PI / 8 && theta < 11 * CV_PI / 8))
-	//	{
-	//		cv::Point2i detectedNearPt, detectedFarPt;
-	//		double a = cos(theta), b = sin(theta);
-	//		double x0 = a*rho, y0 = b*rho;
-	//		detectedNearPt.x = cvRound(x0 + 1000 * (-b));
-	//		detectedNearPt.y = cvRound(y0 + 1000 * (a));
-	//		detectedFarPt.x = cvRound(x0 - 1000 * (-b));
-	//		detectedFarPt.y = cvRound(y0 - 1000 * (a));
+	if (hostLane->validLaneInMemory()) frameLaneAnnotator(*annotatedFrame, *hostLane);
 
-	//		cv::line(annotatedFrame, detectedNearPt, detectedFarPt, cv::Scalar(0, 0, 255),3);
-
-	//		double offsetFrac = (detectedNearPt.x - centerX) / double(centerX);
-	//		if (fabs(offsetFrac) > 0.2)
-	//		{
-	//			if (offsetFrac > 0 && offsetFrac < rightLaneOffset)
-	//			{
-	//				rightLaneOffset = offsetFrac;
-	//				hostLane.setLanePts(detectedNearPt, detectedFarPt, true);
-
-	//			}
-	//			else if (offsetFrac < 0 && offsetFrac > leftLaneOffset)
-	//			{
-	//				leftLaneOffset = offsetFrac;
-	//				hostLane.setLanePts(detectedNearPt, detectedFarPt, false);
-	//			}
-	//		}
-	//		else
-	//		{
-	//			std::cout << "Changing Lanes!" << std::endl;
-	//		}
-	//	}
-	//}
-
-	if (hostLane.validLaneInMemory()) frameLaneAnnotator(annotatedFrame, hostLane);
-
-	hostLane.update();
+	hostLane->update();
 }
 
 
@@ -256,9 +267,9 @@ cv::Mat hlsMaskCreator(const cv::Mat &bgrFrame, const int yHorizon, cv::Mat &hsv
 	static const cv::Scalar whiteLineHSV_low = cv::Scalar(whiteHueLow * 179, whiteSaturationLow * 255, whiteValueLow * 255);
 	static const cv::Scalar whiteLineHSV_high = cv::Scalar(whiteHueHigh * 179, whiteSaturationHigh * 255, whiteValueHigh * 255);*/
 
-	cv::Scalar lowerWhite(0, 200, 0);
+	cv::Scalar lowerWhite(0, 150, 0);
 	cv::Scalar upperWhite(255, 255, 255);
-	cv::Scalar lowerYellow(10, 0, 100);
+	cv::Scalar lowerYellow(10, 0, 70);
 	cv::Scalar upperYellow(40, 255, 255);
 
 	cv::Mat hslFrame, yellowHSLMask, whiteHSLMask;
@@ -270,10 +281,8 @@ cv::Mat hlsMaskCreator(const cv::Mat &bgrFrame, const int yHorizon, cv::Mat &hsv
 	cv::bitwise_or(yellowHSLMask, whiteHSLMask, hsvMask);
 	cv::Mat mask;
 	cv::cvtColor(hsvMask, mask, CV_GRAY2BGR);
-	cv::imshow("Mask", mask);
 	cv::Mat returnMat;
 	cv::bitwise_and(bgrFrame,mask,returnMat);
-	cv::imshow("Anded", bgrFrame);
 	return returnMat;
 
 
@@ -283,16 +292,13 @@ cv::Mat hlsMaskCreator(const cv::Mat &bgrFrame, const int yHorizon, cv::Mat &hsv
 
 void edgeImageCreator(const cv::Mat &bgrFrame, cv::Mat &edgeFrame)
 {
-	static const int cannyLowerThreshold = 75;
+	static const int cannyLowerThreshold = 50;
 	static const int cannyHigherThreshold = 2.5 * cannyLowerThreshold; // ratio in middle of recommended range
 
 	cv::Mat grayFrame;
 
 	cv::cvtColor(bgrFrame, grayFrame, CV_BGR2GRAY);
 	cv::Canny(grayFrame, edgeFrame, cannyLowerThreshold, cannyHigherThreshold);
-
-	cv::imshow("Edges", edgeFrame);
-	cv::moveWindow("Edges", 700, 0);
 }
 
 void gpuedgeImageCreator(const cv::Mat &bgrFrame, cv::Mat &edgeFrame)
@@ -306,12 +312,10 @@ void gpuedgeImageCreator(const cv::Mat &bgrFrame, cv::Mat &edgeFrame)
 	cv::gpu::cvtColor(frame, grayFrame, CV_BGR2GRAY);
 	cv::gpu::Canny(grayFrame, edges, cannyLowerThreshold, cannyHigherThreshold);
 	edges.download(edgeFrame);
-	cv::imshow("Edges", edgeFrame);
-	cv::moveWindow("Edges", 700, 0);
 }
 void lineFinder(const cv::Mat &lineMask, std::vector<cv::Vec2f> &detectedLines, cv::Rect roi)
 {
-	double houghLinesLowerThreshold = 100;
+	double houghLinesLowerThreshold = 45;
 	cv::Mat mask = cv::Mat::zeros(cv::Size(lineMask.size()), CV_8UC1);
 	cv::Mat roiMat = mask(roi);
 	roiMat.setTo(255);
@@ -322,23 +326,23 @@ void lineFinder(const cv::Mat &lineMask, std::vector<cv::Vec2f> &detectedLines, 
 	cv::HoughLines(lineMask, detectedLines, 1, CV_PI / 180, houghLinesLowerThreshold);
 }
 
-void gpulineFinder(const cv::Mat &lineMask, std::vector<cv::Vec4i> &detectedLines, cv::Rect roi)
+void gpulineFinder(const cv::Mat &lineMask, std::vector<cv::Vec2f> &detectedLines, cv::Rect roi)
 {
-	double houghLinesLowerThreshold = 100;
-	cv::gpu::GpuMat gpuMask, gpuROIMat, gpuLinesMask,gpuLines;
+	double houghLinesLowerThreshold = 50;
+	cv::gpu::GpuMat gpuMask, gpuROIMat, gpuLinesMask, gpuLines(cv::Size(lineMask.size()), lineMask.type());
 	gpuLinesMask.upload(lineMask);
 	cv::Mat mask = cv::Mat::zeros(cv::Size(lineMask.size()), CV_8UC1);
 	gpuMask.upload(mask);
 	gpuROIMat = gpuMask(roi);
 	gpuROIMat.setTo(255);
-
-	cv::gpu::bitwise_and(gpuLines, gpuMask, gpuLines);
-
+	cv::gpu::bitwise_and(gpuLinesMask, gpuMask, gpuLinesMask);
+	cv::gpu::HoughLinesBuf buf;
+	//cv::gpu::HoughLinesP(gpuLinesMask, gpuLines, buf, 1, CV_PI / 180, houghLinesLowerThreshold,100);
 	cv::gpu::HoughLines(gpuLinesMask, gpuLines, 1, CV_PI / 180, houghLinesLowerThreshold);
 	if (!gpuLines.empty())
 	{
 		detectedLines.resize(gpuLines.cols);
-		cv::Mat temp_Mat(1, gpuLines.cols, CV_32SC4, &detectedLines[0]);
+		cv::Mat temp_Mat(1, gpuLines.cols, CV_32FC2, &detectedLines[0]);
 		gpuLines.download(temp_Mat);
 	}
 }
@@ -356,8 +360,13 @@ Lane externalVehicleLocator(lane &laneToCheck, const cv::Point2i externalVehicle
 {
 	if (!laneToCheck.validLaneInMemory()) return NODETECT;
 
-	int inLane = cv::pointPolygonTest(laneToCheck.getPts(), externalVehicleCenterPoint, false);
-	if (inLane == 1)
+	//int inLane = cv::pointPolygonTest(laneToCheck.getPts(), externalVehicleCenterPoint, false);
+	
+	std::vector<cv::Point2i> pts = laneToCheck.getPts();
+	cv::Point2i nearPointRight = pts[3];
+	cv::Point2i nearPointLeft = pts[2];
+	
+	if (nearPointRight.x >= externalVehicleCenterPoint.x && externalVehicleCenterPoint.x >= nearPointLeft.x )
 	{
 		return HOST;
 	}

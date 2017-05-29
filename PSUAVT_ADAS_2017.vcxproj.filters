@@ -32,9 +32,6 @@
     <ClCompile Include="..\..\..\..\Andrew%27s_Docs\Ecocar\EcoCAR_Y3\PSUAVT_ADAS_2017\VehicleDetectionTracking\object.cpp">
       <Filter>Objects</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\Andrew%27s_Docs\Ecocar\EcoCAR_Y3\PSUAVT_ADAS_2017\VehicleDetectionTracking\objectTracker.cpp">
-      <Filter>Objects</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\..\Andrew%27s_Docs\Ecocar\EcoCAR_Y3\PSUAVT_ADAS_2017\StereoCalculation.cpp">
       <Filter>Stereo Camera</Filter>
     </ClCompile>
@@ -55,6 +52,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\..\Andrew%27s_Docs\Ecocar\EcoCAR_Y3\PSUAVT_ADAS_2017\Detectors\laneDetection.cpp">
       <Filter>Detection</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Andrew%27s_Docs\Ecocar\EcoCAR_Y3\PSUAVT_ADAS_2017\VehicleDetectionTracking\objectTracker.cpp">
+      <Filter>Objects</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

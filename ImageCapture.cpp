@@ -12,6 +12,10 @@ std::mutex imageLock;
 std::thread cameraCaptureThread;
 bool stopHere = false;
 
+LARGE_INTEGER captureTime;
+LARGE_INTEGER startTime;
+LARGE_INTEGER frequency;
+
 /**
 Initializes cameras and begins camera capture threads. Uses DirectShow to find the cameras
 */
@@ -51,6 +55,8 @@ rightCamera - Right camera device number
 Opens Cameras using OpenCV interface.
 */
 StereoCamera::StereoCamera(int leftCamera, int rightCamera){
+	QueryPerformanceFrequency(&frequency);
+
 	leftCam = cv::VideoCapture(leftCamera);
 	rightCam = cv::VideoCapture(rightCamera);
 	if (!leftCam.isOpened() || !rightCam.isOpened())
@@ -59,14 +65,19 @@ StereoCamera::StereoCamera(int leftCamera, int rightCamera){
 	leftCam.set(CV_CAP_PROP_ZOOM, 100);
 	leftCam.set(CV_CAP_PROP_FRAME_WIDTH, 864);
 	leftCam.set(CV_CAP_PROP_FRAME_HEIGHT, 480);
-	leftCam.set(CV_CAP_PROP_CONTRAST, 150);
+	//leftCam.set(CV_CAP_PROP_CONTRAST, 300);
 	leftCam.set(CV_CAP_PROP_BRIGHTNESS, 150);
+	//leftCam.set(CV_CAP_PROP_EXPOSURE, 1.0);
+	//leftCam.set(CV_CAP_PROP_SATURATION, 150);
+	//leftCam.set(CV_CAP_PROP_HUE, 150);*/
+
 	rightCam.set(CV_CAP_PROP_FOCUS, 0);
 	rightCam.set(CV_CAP_PROP_ZOOM, 100);
 	rightCam.set(CV_CAP_PROP_FRAME_WIDTH, 864);
 	rightCam.set(CV_CAP_PROP_FRAME_HEIGHT, 480);
-	leftCam.set(CV_CAP_PROP_CONTRAST, 150);
-	leftCam.set(CV_CAP_PROP_BRIGHTNESS, 150);
+	//rightCam.set(CV_CAP_PROP_CONTRAST, 300);
+	rightCam.set(CV_CAP_PROP_BRIGHTNESS, 150);
+	//rightCam.set(CV_CAP_PROP_EXPOSURE, 1.0);*/
 	cameraCaptureThread = std::thread(&StereoCamera::updateFrames,this);
 	cameraCaptureThread.detach();
 }
@@ -86,28 +97,40 @@ void StereoCamera::cleanUp(){
 }
 
 void StereoCamera::updateFrames(){
+
 	while (!stopHere){
-		cv::Mat tmp;
-		cv::Mat tmp2;
-		leftCam >> tmp;
-		rightCam >> tmp2;
+		//leftCam >> tmp;
+		//rightCam >> tmp2;
 
-		if (tmp.empty() && tmp2.empty()) continue;
+		//if (tmp.empty() && tmp2.empty()) continue;
 
-		imageLock.lock();
-		tmp.copyTo(leftFrame);
-		tmp2.copyTo(rightFrame);
-		cv::cvtColor(leftFrame, leftFrameGray, cv::COLOR_BGR2GRAY);
-		cv::cvtColor(rightFrame, rightFrameGray, cv::COLOR_BGR2GRAY);
-		imageLock.unlock();
+		//imageLock.lock();
+		//tmp.copyTo(leftFrame);
+		//tmp2.copyTo(rightFrame);
+		//cv::cvtColor(leftFrame, leftFrameGray, cv::COLOR_BGR2GRAY);
+		//cv::cvtColor(rightFrame, rightFrameGray, cv::COLOR_BGR2GRAY);
+		//imageLock.unlock();
+
+		if (leftCam.grab() && rightCam.grab()){
+			imageLock.lock();
+			leftCam.retrieve(leftFrame);
+			rightCam.retrieve(rightFrame);
+			QueryPerformanceCounter(&captureTime);
+			double timeDif = captureTime.QuadPart - startTime.QuadPart;
+
+			imageLock.unlock();
+			//if (tmpLeft.empty() || tmpRight.empty()) continue;
+		}
 	}
 }
 
-void StereoCamera::getColorImages(cv::Mat *left,cv::Mat *right){
+LARGE_INTEGER StereoCamera::getColorImages(cv::Mat *left,cv::Mat *right){
 	imageLock.lock();
 	leftFrame.copyTo(*left);
 	rightFrame.copyTo(*right);
+	LARGE_INTEGER timeTaken = captureTime;
 	imageLock.unlock();
+	return timeTaken;
 }
 
 void StereoCamera::getGrayImages(cv::Mat *left, cv::Mat *right){
@@ -115,6 +138,10 @@ void StereoCamera::getGrayImages(cv::Mat *left, cv::Mat *right){
 	*left = leftFrameGray.clone();
 	*right = rightFrameGray.clone();
 	imageLock.unlock();
+}
+
+void StereoCamera::setStartTime(LARGE_INTEGER st){
+	startTime = st;
 }
 
 HRESULT EnumerateDevices(REFGUID category, IEnumMoniker **ppEnum)

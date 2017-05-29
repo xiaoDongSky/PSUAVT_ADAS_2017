@@ -3,6 +3,8 @@
 #include <opencv2\gpu\gpu.hpp>
 #include "../VehicleDetectionTracking/objects.h"
 
+void nms(const std::vector<cv::Rect>& srcRects, std::vector<cv::Rect>& resRects, double NMSThreshold, int neighbors = 0);
+
 class GPUDetector
 {
 public:
@@ -14,7 +16,7 @@ public:
 	void setScaleFactor(double scaleFactor);
 	void loadFile(char * fileName);
 	void multiScaleDetection(cv::Mat image, cv::Rect* objects,int *objNum);
-
+	void GPUDetector::multiScaleDetection(cv::Mat image, objectTracker* tracker);
 private:
 	double scaleFactor;
 	int minNeighbors;

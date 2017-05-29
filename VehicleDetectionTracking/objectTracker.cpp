@@ -2,12 +2,12 @@
 #include "objects.h"
 #include "stdio.h"
 
-objectTracker::objectTracker(ObjectType o)
+objectTracker::objectTracker(ObjectType o, double trackPerc, int maxObjs = 5)
 {
 	obj = o;
-    framesInMemory = 10;
-    maxTrackedObjects = 10;
-    minTrackingPercentage = 20.0;
+    framesInMemory = 3;
+    maxTrackedObjects = maxObjs;
+    minTrackingPercentage = trackPerc;
 }
 
 
@@ -43,7 +43,10 @@ void objectTracker::track(const std::vector<object> &detectedObjects, const cv::
 
         for (size_t trackedObject = 0; trackedObject < trackedObjects.size(); ++trackedObject)
         {
-            if (trackedObjects[trackedObject].lastSeenIndex >= prevFrames.size()) continue;
+			if (trackedObjects[trackedObject].lastSeenIndex >= prevFrames.size()){
+				trackedObjects.erase(trackedObjects.begin() + trackedObject);
+				continue;
+			}
 
             std::vector<cv::Point2f> trackedPts;
             std::vector<float> err;
@@ -86,7 +89,10 @@ void objectTracker::track(const std::vector<object> &detectedObjects, const cv::
 
             if (correspondingDetectedObjectIdx >= 0)
             {
+				int id = trackedObjects[trackedObject].objectID;
                 trackedObjects[trackedObject] = detectedObjects[correspondingDetectedObjectIdx];
+				trackedObjects[trackedObject].objectID = id;
+				trackedObjects[trackedObject].distance = -2;
                 detectedObjectsThatWereTracked[correspondingDetectedObjectIdx] = true;   
 				trackedObjects[trackedObject].lastSeenIndex = 0;
             }
@@ -101,6 +107,7 @@ void objectTracker::track(const std::vector<object> &detectedObjects, const cv::
                     trackedObjects.push_back(detectedObjects[detectedObject]);
 					trackedObjects[trackedObjects.size() - 1].lastSeenIndex = 0;
 					trackedObjects[trackedObjects.size() - 1].objectID = numObjects;
+					trackedObjects[trackedObjects.size() - 1].distance = -1;
 					numObjects++;
                  }
             }
@@ -113,6 +120,7 @@ void objectTracker::track(const std::vector<object> &detectedObjects, const cv::
 		for (int i = 0; i < trackedObjects.size(); i++){
 			trackedObjects[i].lastSeenIndex = 0;
 			trackedObjects[i].objectID = numObjects;
+			trackedObjects[i].distance = -1;
 			numObjects++;
 		}
     }

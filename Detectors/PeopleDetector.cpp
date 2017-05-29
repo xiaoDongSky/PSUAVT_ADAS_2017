@@ -1,12 +1,9 @@
 #include "GPUDetector.h"
 
 
-
-void nms(const std::vector<cv::Rect>& srcRects, std::vector<cv::Rect>& resRects, double NMSThreshold, int neighbors = 0);
-
 PedestrianDetector::PedestrianDetector(cv::Size win_stride, double nmsThres, double scale0, int group_threshold, double hitThres){
-	detector = cv::gpu::HOGDescriptor(cv::Size(64, 128), cv::Size(16, 16), cv::Size(8, 8), cv::Size(8, 8), 9, -1.0, 0.2, true, 48);
-	detector.setSVMDetector(cv::gpu::HOGDescriptor::getDefaultPeopleDetector());
+	detector = cv::gpu::HOGDescriptor(cv::Size(48, 96), cv::Size(16, 16), cv::Size(8, 8), cv::Size(8, 8), 9, -1.0, 0.2, true, 48);
+	detector.setSVMDetector(cv::gpu::HOGDescriptor::getPeopleDetector48x96());
 	winStride = win_stride;
 	scale = scale0;
 	groupThreshold = group_threshold;

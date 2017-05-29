@@ -46,11 +46,11 @@ void CPUDetector::setScaleFactor(double scaleFactor1) {
 
 void CPUDetector::loadFile(char * fileName1) {
 	if (fileLoaded1 = detector.load(fileName1)) {
-		printf("Loaded detector: %s\n", fileName1);
+		//printf("Loaded detector: %s\n", fileName1);
 		this->fileName1 = fileName1;
 	}
 	else {
-		printf("Failed to Load Detector: %s\n", fileName1);
+		//printf("Failed to Load Detector: %s\n", fileName1);
 	}
 }
 
@@ -84,7 +84,7 @@ void multiScaleDetection(cv::Mat image, std::vector<object> &objects){
 
 void CPUDetector::multiScaleDetection(cv::Mat image, objectTracker* tracker){
 
-	printf("Tracker Mem = %x\n", tracker);
+	//printf("Tracker Mem = %x\n", tracker);
 	std::vector<object> objects;
 	cv::Mat gray;
 	cv::cvtColor(image, gray, CV_BGR2GRAY);

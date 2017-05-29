@@ -24,3 +24,5 @@ void gpuCalculateDisparity(cv::Mat leftRectified, cv::Mat rightRectified, cv::Ma
 double GetMedian(double daArray[], int iSize);
 
 void calculateDistances(cv::Mat points3d, objectTracker& tracker, lane lane);
+
+int checkObstruction(cv:: Mat curLeft, cv::Mat pastLeft, cv::Mat curRight, cv::Mat pastRight);

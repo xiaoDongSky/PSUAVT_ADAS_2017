@@ -23,3 +23,9 @@ private:
 	char * fileName1;
 };
 
+class HOGDescriptor
+{
+public:
+	void get_svm_detector(const cv::Ptr<cv::SVM>& svm, std::vector< float > & hog_detector);
+};
+

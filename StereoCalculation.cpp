@@ -56,7 +56,7 @@ void initDisparity(cv::Mat camMat1, cv::Mat distCoeffs1, cv::Mat camMat2, cv::Ma
 	cv::stereoRectify(camMat1, distCoeffs1, camMat2, distCoeffs2, frameSize, R, T, R1, R2, P1, P2, Q, CV_CALIB_ZERO_DISPARITY, 1, frameSize);
 	cv::initUndistortRectifyMap(camMat1, distCoeffs1, R1, newCameraMatrix1, frameSize, CV_32FC1, map11, map21);
 	cv::initUndistortRectifyMap(camMat2, distCoeffs2, R2, newCameraMatrix2, frameSize, CV_32FC1, map12, map22);
-	disparityCalculator = cv::StereoBM();
+	//disparityCalculator = cv::StereoBM();
 }
 
 void rectifyImages(cv::Mat leftFrame, cv::Mat rightFrame, cv::Mat* leftRectified,cv::Mat* rightRectified){
@@ -104,43 +104,31 @@ void gpuCalculateDisparity(cv::Mat leftRectified, cv::Mat rightRectified, cv::Ma
 
 	cv::gpu::GpuMat disp;
 	gpuDispCalc(leftGray, rightGray, disp);
-	cv::gpu::GpuMat xyz(864,480,CV_32FC3);
+	cv::gpu::GpuMat xyzw(864,480,CV_32FC3);
 	cv::Mat Q32F;
 	Q.convertTo(Q32F, CV_32F);
-	cv::gpu::reprojectImageTo3D(disp, xyz, Q32F, 3);
-	cv::Mat points3d(cv::Size(864, 480),CV_32FC3);
-	xyz.download(*p3d);
+	cv::gpu::reprojectImageTo3D(disp, xyzw, Q32F, 3);
+	cv::Mat points3d(cv::Size(864, 480), CV_32FC3);
+	xyzw.download(*p3d);
 }
 
 void calculateDistances(cv::Mat points3d, objectTracker& tracker, lane lane){
+	float bboxSize = .1;
+	int numberPixels = 0;
 	for (int i = 0; i < tracker.trackedObjects.size(); i++){
 		if (tracker.trackedObjects[i].lastSeenIndex == 0){
-			int xCenter = tracker.trackedObjects[i].center.x;
-			tracker.trackedObjects[i].lane = externalVehicleLocator(lane, tracker.trackedObjects[i].center);
-			int width = tracker.trackedObjects[i].boundingBox.width;
-			int yCenter = tracker.trackedObjects[i].center.y;
-			int height = tracker.trackedObjects[i].boundingBox.height;
-			double daArray[9];
-			cv::Point3d leftCorner = points3d.at<cv::Point3f>(cv::Point(xCenter - POINTMULT*width, yCenter - POINTMULT*width));
-			daArray[0] = sqrt(std::pow(leftCorner.x, 2) + std::pow(leftCorner.y, 2) + std::pow(leftCorner.z, 2));
-			cv::Point3d middleTop = points3d.at<cv::Point3f>(cv::Point(xCenter, yCenter - POINTMULT*width));
-			daArray[1] = sqrt(std::pow(middleTop.x, 2) + std::pow(middleTop.y, 2) + std::pow(middleTop.z, 2));
-			cv::Point3d rightCorner = points3d.at<cv::Point3f>(cv::Point(xCenter + POINTMULT*width, yCenter - POINTMULT*width));
-			daArray[2] = sqrt(std::pow(rightCorner.x, 2) + std::pow(rightCorner.y, 2) + std::pow(rightCorner.z, 2));
-			cv::Point3d leftMid = points3d.at<cv::Point3f>(cv::Point(xCenter - POINTMULT*width, yCenter));
-			daArray[3] = sqrt(std::pow(leftMid.x, 2) + std::pow(leftMid.y, 2) + std::pow(leftMid.z, 2));
-			cv::Point3d middle = points3d.at<cv::Point3f>(cv::Point(xCenter, yCenter));
-			daArray[4] = sqrt(std::pow(middle.x, 2) + std::pow(middle.y, 2) + std::pow(middle.z, 2));
-			cv::Point3d rightMid = points3d.at<cv::Point3f>(cv::Point(xCenter + POINTMULT*width, yCenter));
-			daArray[5] = sqrt(std::pow(rightMid.x, 2) + std::pow(rightMid.y, 2) + std::pow(rightMid.z, 2));
-			cv::Point3d bottomLeft = points3d.at<cv::Point3f>(cv::Point(xCenter - POINTMULT*width, yCenter + POINTMULT*width));
-			daArray[6] = sqrt(std::pow(bottomLeft.x, 2) + std::pow(bottomLeft.y, 2) + std::pow(bottomLeft.z, 2));
-			cv::Point3d bottomMid = points3d.at<cv::Point3f>(cv::Point(xCenter, yCenter + POINTMULT*width));
-			daArray[7] = sqrt(std::pow(bottomMid.x, 2) + std::pow(bottomMid.y, 2) + std::pow(bottomMid.z, 2));
-			cv::Point3d bottomRight = points3d.at<cv::Point3f>(cv::Point(xCenter + POINTMULT*width, yCenter + POINTMULT*width));
-			daArray[8] = sqrt(std::pow(bottomRight.x, 2) + std::pow(bottomRight.y, 2) + std::pow(bottomRight.z, 2));
-
-			tracker.trackedObjects[i].distance = GetMedian(daArray, 9);
+			int accumulator = 0;
+			for (int xPix = 0; xPix < tracker.trackedObjects[i].boundingBox.width * bboxSize; xPix++){
+				for (int yPix = 0; yPix < tracker.trackedObjects[i].boundingBox.height * bboxSize; yPix++){
+					cv::Point3f distPoint= points3d.at<cv::Point3f>(cv::Point(tracker.trackedObjects[i].boundingBox.x + xPix, tracker.trackedObjects[i].boundingBox.y + yPix));
+					if (distPoint.z < 100000.0){
+						accumulator = accumulator + distPoint.z;
+						numberPixels++;
+					}
+					
+				}
+			}
+			tracker.trackedObjects[i].distance = float(accumulator / (numberPixels * 1000.0));
 		}
 	}
 }
@@ -172,3 +160,51 @@ double GetMedian(double daArray[], int iSize) {
 	delete[] dpSorted;
 	return dMedian;
 }
+
+//@return If function returns 1, left camera is obscured, if returns 2, right camera is obscured. If returns 0, no camera obscured.
+int checkObstruction(cv::Mat curLeft, cv::Mat pastLeft, cv::Mat curRight, cv::Mat pastRight){
+
+	cv::gpu::GpuMat cLeft(curLeft);
+	cv::gpu::GpuMat cLeftGray;
+	cv::gpu::cvtColor(cLeft, cLeftGray, CV_BGR2GRAY);
+	cv::gpu::GpuMat cRight(curRight);
+	cv::gpu::GpuMat cRightGray;
+	cv::gpu::cvtColor(cRight, cRightGray, CV_BGR2GRAY);
+	cv::gpu::GpuMat pLeft(pastLeft);
+	cv::gpu::GpuMat pLeftGray;
+	cv::gpu::cvtColor(pLeft, pLeftGray, CV_BGR2GRAY);
+	cv::gpu::GpuMat pRight(pastRight);
+	cv::gpu::GpuMat pRightGray;
+	cv::gpu::cvtColor(pRight, pRightGray, CV_BGR2GRAY);
+
+
+	cv::gpu::GpuMat gpuSumLeft(cv::Size(864,480),CV_8UC1);
+	cv::gpu::GpuMat gpuSumRight(cv::Size(864, 480), CV_8UC1);
+	cv::gpu::subtract(cLeftGray, pLeftGray, gpuSumLeft);
+	cv::gpu::subtract(cRightGray, pRightGray, gpuSumRight);
+
+	cv::Mat sumLeft(gpuSumLeft);
+	cv::Mat sumRight(gpuSumRight);
+
+	if (cv::countNonZero(sumLeft) < 100){
+		static const int cannyLowerThreshold = 50;
+		static const int cannyHigherThreshold = 2.5 * cannyLowerThreshold; // ratio in middle of recommended range
+		cv::gpu::GpuMat lines;
+		cv::gpu::Canny(pLeftGray,lines,cannyLowerThreshold,cannyHigherThreshold);
+		cv::Scalar sumCanny = cv::gpu::sum(lines);
+		if (sumCanny[0] < 10)
+			return 1;
+	}
+	if (cv::countNonZero(sumRight) < 100){
+		static const int cannyLowerThreshold = 50;
+		static const int cannyHigherThreshold = 2.5 * cannyLowerThreshold; // ratio in middle of recommended range
+		cv::gpu::GpuMat lines;
+		cv::gpu::Canny(pRightGray, lines, cannyLowerThreshold, cannyHigherThreshold);
+		cv::Scalar sumCanny = cv::gpu::sum(lines);
+		if (sumCanny[0] < 10)
+			return 2;
+	}
+	return 0;
+}
+
+

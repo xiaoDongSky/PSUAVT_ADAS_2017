@@ -19,7 +19,7 @@ class object
         int lastSeenIndex;
 		float distance;
 		Lane lane;
-		int objectID;
+		int objectID=-1;
 
 };
 
@@ -27,20 +27,20 @@ class objectTracker
 {
     public:
 		ObjectType obj;
-		objectTracker(ObjectType o);
+		objectTracker(ObjectType o, double trackPerc, int);
         void storeFrame(const cv::Mat &frame);
         void update();
+		int maxTrackedObjects;
         void track(const std::vector<object> &detectedObjects, const cv::Mat &frame);
         std::vector<object> trackedObjects;
         std::deque<cv::Mat> prevFrames;
     private:
 		int numObjects = 1;
         int framesInMemory;
-        int maxTrackedObjects;
         double minTrackingPercentage;
 };
 
 
-void frameAnnotator(cv::Mat &frame, objectTracker tracker);
+void frameAnnotator(cv::Mat &frame, objectTracker& tracker);
 
 #endif
